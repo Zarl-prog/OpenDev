@@ -1,5 +1,5 @@
 from llm import ask_llm
-from tools import read_file
+from tools import read_file, run_command
 
 
 def run_agent():
@@ -9,7 +9,7 @@ def run_agent():
         if user_input.lower() == "exit":
             break
 
-        if user_input.startswith("read "):
+        elif user_input.startswith("read "):
             file_path = user_input.replace("read ", "")
 
             print("Reading file...")
@@ -29,6 +29,19 @@ Analyze this file:
             response = ask_llm(prompt)
 
             print("LLM responded.")
+
+        elif user_input.startswith("run "):
+            command = user_input.replace("run ", "")
+
+            print("Executing command...")
+
+            output = run_command(command)
+
+            response = f"""
+Command Output:
+
+{output}
+"""
 
         else:
             response = ask_llm(user_input)
