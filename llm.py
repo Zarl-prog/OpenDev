@@ -11,7 +11,7 @@ client = OpenAI(
 
 def ask_llm(prompt):
     response = client.chat.completions.create(
-        model="meta/llama-3.1-70b-instruct",
+        model="meta/llama-3.1-8b-instruct",
         messages=[
             {
                 "role": "user",
