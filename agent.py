@@ -1,5 +1,5 @@
 from llm import ask_llm
-from tools import read_file, run_command
+from tools import read_file, run_command, write_file
 
 
 def run_agent():
@@ -42,7 +42,19 @@ Command Output:
 
 {output}
 """
+        elif user_input.startswith("write "):
+            parts = user_input.split(" ", 2)
 
+            if len(parts) < 3:
+                response = "Usage: write filename content"
+
+            else:
+                file_path = parts[1]
+                content = parts[2]
+
+                print("Writing file...")
+
+                response = write_file(file_path, content)
         else:
             response = ask_llm(user_input)
 
