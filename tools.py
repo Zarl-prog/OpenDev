@@ -1,4 +1,7 @@
+import glob
 import subprocess
+
+import grep
 
 
 def run_command(command):
@@ -37,3 +40,41 @@ def write_file(file_path, content):
 
     except Exception as error:
         return f"Write error: {error}"
+
+
+def find_files(pattern):
+    try:
+        files = glob.glob(pattern, recursive=True)
+
+        if not files:
+            return "No matching files found."
+
+        return "\n".join(files)
+
+    except Exception as error:
+        return f"Glob error: {error}"
+
+        def search_in_files(search_text):
+            try:
+                matches = []
+
+                files = glob.glob("**/*", recursive=True)
+
+                for file_path in files:
+                    try:
+                        with open(file_path, "r", encoding="utf-8") as file:
+                            content = file.read()
+
+                            if search_text.lower() in content.lower():
+                                matches.append(file_path)
+
+                    except:
+                        pass
+
+                if not matches:
+                    return "No matches found."
+
+                return "\n".join(matches)
+
+            except Exception as error:
+                return f"Grep error: {error}"
