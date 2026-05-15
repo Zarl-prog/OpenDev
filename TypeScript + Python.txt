@@ -1,0 +1,124 @@
+The Hybrid Architecture
+┌─────────────────────────────────────────────────────┐
+│           TypeScript Frontend / Product              │
+│     (Next.js / React — chat UI, dashboards)         │
+└──────────────────────┬──────────────────────────────┘
+                       │  HTTP / WebSocket / SSE
+┌──────────────────────▼──────────────────────────────┐
+│           TypeScript API Gateway                     │
+│        (Express / Fastify / Next.js API)             │
+└──────────────────────┬──────────────────────────────┘
+                       │  REST / gRPC / Message Queue
+┌──────────────────────▼──────────────────────────────┐
+│            Python Agent Brain                        │
+│     (FastAPI + LangChain / LlamaIndex / CrewAI)     │
+│                                                      │
+│   ┌─────────┐  ┌─────────┐  ┌────────────────────┐ │
+│   │ Planner │  │ Memory  │  │  Tools / Executors  │ │
+│   │  (LLM)  │  │  (RAG)  │  │ (search, code, API) │ │
+│   └─────────┘  └─────────┘  └────────────────────┘ │
+└─────────────────────────────────────────────────────┘
+
+How They Communicate
+3 main patterns:
+1. REST API (simplest)
+TS sends POST /agent/run {"task": "..."}
+Python processes & returns {"result": "..."}
+2. Streaming with SSE (best for chat)
+TS opens EventSource → Python streams tokens back in real-time
+3. Message Queue (best for long tasks)
+TS pushes task to Redis/RabbitMQ → Python worker picks it up → 
+result stored → TS polls or gets notified via webhook
+
+Minimal Working Example
+Python Brain (FastAPI)
+python# agent_brain/main.py
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+import anthropic
+
+app = FastAPI()
+client = anthropic.Anthropic()
+
+@app.post("/agent/run")
+async def run_agent(payload: dict):
+    task = payload["task"]
+    
+    # Agent loop
+    messages = [{"role": "user", "content": task}]
+    
+    response = client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=1000,
+        messages=messages
+    )
+    
+    return {"result": response.content[0].text}
+
+@app.post("/agent/stream")
+async def stream_agent(payload: dict):
+    task = payload["task"]
+    
+    def generate():
+        with client.messages.stream(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1000,
+            messages=[{"role": "user", "content": task}]
+        ) as stream:
+            for text in stream.text_stream:
+                yield f"data: {text}\n\n"  # SSE format
+    
+    return StreamingResponse(generate(), media_type="text/event-stream")
+TypeScript Product (Next.js)
+typescript// app/api/agent/route.ts
+export async function POST(req: Request) {
+  const { task } = await req.json()
+
+  // Forward to Python brain
+  const response = await fetch("http://localhost:8000/agent/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ task })
+  })
+
+  const data = await response.json()
+  return Response.json(data)
+}
+typescript// components/AgentChat.tsx
+"use client"
+import { useState } from "react"
+
+export default function AgentChat() {
+  const [result, setResult] = useState("")
+  const [task, setTask] = useState("")
+
+  const runAgent = async () => {
+    // Streaming version
+    const eventSource = new EventSource(
+      `http://localhost:8000/agent/stream?task=${encodeURIComponent(task)}`
+    )
+    
+    eventSource.onmessage = (e) => {
+      setResult(prev => prev + e.data)  // tokens stream in real-time
+    }
+  }
+
+  return (
+    <div>
+      <input value={task} onChange={e => setTask(e.target.value)} />
+      <button onClick={runAgent}>Run Agent</button>
+      <p>{result}</p>
+    </div>
+  )
+}
+
+Full Production Stack
+LayerTechnologyLanguageUINext.js / ReactTypeScriptAPI GatewayExpress / FastifyTypeScriptAuthNextAuth / ClerkTypeScriptAgent BrainFastAPIPythonLLMClaude via Anthropic SDKPythonMemory / RAGLangChain + ChromaDBPythonTask QueueRedis + CeleryPythonDatabasePostgreSQLBoth connectDeploymentVercel (TS) + Docker (Python)—
+
+Key Benefits of This Split
+
+Python owns all the heavy lifting — LLM calls, tool use, memory, embeddings
+TypeScript owns everything user-facing — auth, UI, real-time streaming, type-safe APIs
+Each side can scale independently
+Teams can specialize — ML engineers in Python, frontend engineers in TS
+You can swap either side without touching the other

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDev Upgrade Plan</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #1a1a1a;
+            --paper: #faf9f7;
+            --accent: #c94a2e;
+            --accent-light: #e8dcd9;
+            --muted: #6b6561;
+            --line: #e0ddda;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'DM Sans', -apple-system, sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.6;
+        }
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 80px 120px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--accent-light) 0%, transparent 70%);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .hero-content {
+            max-width: 800px;
+            position: relative;
+            z-index: 1;
+        }
+        .eyebrow {
+            font-family: 'DM Sans', monospace;
+            font-size: 12px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+        h1 {
+            font-family: 'Newsreader', Georgia, serif;
+            font-size: clamp(48px, 6vw, 80px);
+            font-weight: 500;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            margin-bottom: 32px;
+        }
+        h1 .highlight {
+            color: var(--accent);
+            font-style: italic;
+        }
+        .subtitle {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 600px;
+            margin-bottom: 48px;
+        }
+        .meta {
+            display: flex;
+            gap: 32px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .meta-item::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+        .section {
+            padding: 120px;
+            border-top: 1px solid var(--line);
+        }
+        .phase-header {
+            display: flex;
+            align-items: baseline;
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+        .phase-number {
+            font-family: 'Newsreader', serif;
+            font-size: 72px;
+            font-weight: 400;
+            color: var(--accent);
+            line-height: 1;
+        }
+        .phase-title {
+            font-family: 'Newsreader', serif;
+            font-size: 36px;
+            font-weight: 500;
+        }
+        .phase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .feature-card {
+            background: white;
+            border: 1px solid var(--line);
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        .feature-title {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+        .feature-desc {
+            color: var(--muted);
+            font-size: 15px;
+        }
+        .backend-section {
+            background: var(--ink);
+            color: var(--paper);
+            padding: 80px 120px;
+        }
+        .backend-title {
+            font-family: 'Newsreader', serif;
+            font-size: 32px;
+            margin-bottom: 40px;
+        }
+        .backend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+        .backend-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 32px;
+        }
+        .backend-card h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: var(--accent);
+        }
+        .backend-card p {
+            color: rgba(255,255,255,0.7);
+            font-size: 15px;
+        }
+        .backend-card .badge {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--line);
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 40px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -44px;
+            top: 8px;
+            width: 10px;
+            height: 10px;
+            background: var(--paper);
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+        }
+        .timeline-item.completed::before {
+            background: var(--accent);
+        }
+        .timeline-phase {
+            font-size: 12px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .timeline-title {
+            font-family: 'Newsreader', serif;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .timeline-desc {
+            color: var(--muted);
+            font-size: 15px;
+        }
+        footer {
+            padding: 80px 120px;
+            border-top: 1px solid var(--line);
+            text-align: center;
+        }
+        footer p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+        @media (max-width: 768px) {
+            .hero, .section {
+                padding: 60px 24px;
+            }
+            .backend-section {
+                padding: 60px 24px;
+            }
+            h1 {
+                font-size: 40px;
+            }
+            .phase-number {
+                font-size: 48px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        function App() {
+            return (
+                <>
+                    <section className="hero">
+                        <div className="hero-content">
+                            <div className="eyebrow">Master Plan</div>
+                            <h1>OpenDev <span className="highlight">Upgrade</span></h1>
+                            <p className="subtitle">
+                                A 6-phase journey transforming your CLI AI agent into a full-featured, multi-agent system with modern architecture and powerful capabilities.
+                            </p>
+                            <div className="meta">
+                                <div className="meta-item">6 Phases</div>
+                                <div className="meta-item">Free Backend</div>
+                                <div className="meta-item">Modern Stack</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="section">
+                        <div className="phase-header">
+                            <span className="phase-number">01</span>
+                            <h2 className="phase-title">Enhanced Capabilities</h2>
+                        </div>
+                        <div className="phase-grid">
+                            <div className="feature-card">
+                                <div className="feature-icon">🔍</div>
+                                <div className="feature-title">Web Search</div>
+                                <div className="feature-desc">Integrate Tavily/Exa/DuckDuckGo APIs for live information retrieval</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">⚡</div>
+                                <div className="feature-title">Code Execution</div>
+                                <div className="feature-desc">Sandboxed Python and JavaScript execution environments</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">💾</div>
+                                <div className="feature-title">Memory & Persistence</div>
+                                <div className="feature-desc">SQLite-based conversation history and context management</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">📁</div>
+                                <div className="feature-title">Advanced File Operations</div>
+                                <div className="feature-desc">Glob patterns, grep search, tree views, and batch operations</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="section">
+                        <div className="phase-header">
+                            <span className="phase-number">02</span>
+                            <h2 className="phase-title">Modern Stack</h2>
+                        </div>
+                        <div className="phase-grid">
+                            <div className="feature-card">
+                                <div className="feature-icon">🔌</div>
+                                <div className="feature-title">Provider Abstraction</div>
+                                <div className="feature-desc">LLM-agnostic interface supporting multiple backends</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">⛓️</div>
+                                <div className="feature-title">LangChain Integration</div>
+                                <div className="feature-desc">Chains, agents, and memory management patterns</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">🛠️</div>
+                                <div class className="feature-title">Structured Tool System</div>
+                                <div className="feature-desc">JSON schema-based tool definitions with validation</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="section">
+                        <div className="phase-header">
+                            <span className="phase-number">03</span>
+                            <h2 className="phase-title">Agent Architecture</h2>
+                        </div>
+                        <div className="phase-grid">
+                            <div className="feature-card">
+                                <div className="feature-icon">🧠</div>
+                                <div className="feature-title">ReAct Loop</div>
+                                <div className="feature-desc">Think → Act → Observe reasoning cycle with self-correction</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">📋</div>
+                                <div className="feature-title">Planning Agent</div>
+                                <div className="feature-desc">Task decomposition and multi-step execution planning</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">🔄</div>
+                                <div className="feature-title">Reflection System</div>
+                                <div className="feature-desc">Self-critique, retry logic, and output validation</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="section">
+                        <div className="phase-header">
+                            <span className="phase-number">04</span>
+                            <h2 className="phase-title">UI Upgrade</h2>
+                        </div>
+                        <div className="phase-grid">
+                            <div className="feature-card">
+                                <div className="feature-icon">🎨</div>
+                                <div className="feature-title">Streamlit Interface</div>
+                                <div className="feature-desc">Fast Python-only web UI with chat, file upload, and visualization</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">✨</div>
+                                <div className="feature-title">Gradio Option</div>
+                                <div className="feature-desc">Highly customizable UI with advanced component library</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">🌐</div>
+                                <div className="feature-title">FastAPI + React</div>
+                                <div className="feature-desc">Full control with modern frontend framework</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="section">
+                        <div className="phase-header">
+                            <span className="phase-number">05</span>
+                            <h2 className="phase-title">Multi-Agent System</h2>
+                        </div>
+                        <div className="phase-grid">
+                            <div className="feature-card">
+                                <div className="feature-icon">📜</div>
+                                <div className="feature-title">Planner Agent</div>
+                                <div className="feature-desc">Breaks down complex tasks into executable subtasks</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">🔧</div>
+                                <div className="feature-title">Tool Agent</div>
+                                <div className="feature-desc">Specialized execution for specific tool categories</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">✅</div>
+                                <div className="feature-title">Review Agent</div>
+                                <div className="feature-desc">Validates outputs and ensures quality standards</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">🗄️</div>
+                                <div className="feature-title">Memory Agent</div>
+                                <div className="feature-desc">Manages context persistence and retrieval across sessions</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="section">
+                        <div className="phase-header">
+                            <span className="phase-number">06</span>
+                            <h2 className="phase-title">MCP Integration</h2>
+                        </div>
+                        <div className="phase-grid">
+                            <div className="feature-card">
+                                <div className="feature-icon">📂</div>
+                                <div className="feature-title">Filesystem MCP</div>
+                                <div className="feature-desc">Full file system access with permissions and operations</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">🐙</div>
+                                <div className="feature-title">GitHub MCP</div>
+                                <div className="feature-desc">Repository operations, issues, PRs, and actions</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">🌐</div>
+                                <div className="feature-title">Web Search MCP</div>
+                                <div className="feature-desc">Live data retrieval and content extraction</div>
+                            </div>
+                            <div className="feature-card">
+                                <div className="feature-icon">🔩</div>
+                                <div className="feature-title">Custom MCP Servers</div>
+                                <div className="feature-desc">Build your own tool servers for specialized capabilities</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="backend-section">
+                        <h2 className="backend-title">Backend Strategy</h2>
+                        <div className="backend-grid">
+                            <div className="backend-card">
+                                <span className="badge">CURRENT</span>
+                                <h3>NVIDIA Llama 3.1 8B</h3>
+                                <p>Continue using the free NVIDIA NIM endpoint. Reliable, no cost, good for prototyping.</p>
+                            </div>
+                            <div className="backend-card">
+                                <span className="badge">BACKUP</span>
+                                <h3>FreeLLM Gateway</h3>
+                                <p>OpenAI-compatible gateway aggregating 8 free providers with automatic failover (~450 req/min).</p>
+                            </div>
+                            <div className="backend-card">
+                                <span className="badge">LOCAL</span>
+                                <h3>Ollama</h3>
+                                <p>Run models locally on your GPU. Free, offline-capable, ~40-80 tokens/sec on consumer cards.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="section">
+                        <div className="phase-header">
+                            <span className="phase-number">→</span>
+                            <h2 className="phase-title">Execution Timeline</h2>
+                        </div>
+                        <div className="timeline">
+                            <div className="timeline-item">
+                                <div className="timeline-phase">Phase 1-2</div>
+                                <div className="timeline-title">Foundation</div>
+                                <div className="timeline-desc">Enhanced tools + Modern stack architecture (1-2 weeks)</div>
+                            </div>
+                            <div className="timeline-item">
+                                <div className="timeline-phase">Phase 3-4</div>
+                                <div className="timeline-title">Intelligence + Interface</div>
+                                <div className="timeline-desc">ReAct agents + Web UI (2-3 weeks)</div>
+                            </div>
+                            <div className="timeline-item">
+                                <div className="timeline-phase">Phase 5-6</div>
+                                <div className="timeline-title">Expansion</div>
+                                <div className="timeline-desc">Multi-agent coordination + MCP integration (3-4 weeks)</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <footer>
+                        <p>OpenDev Upgrade Plan · Built with huashu-design principles</p>
+                    </footer>
+                </>
+            );
+        }
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>

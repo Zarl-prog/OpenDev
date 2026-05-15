@@ -1,7 +1,9 @@
 import glob
 import subprocess
+import os
+from tavily import TavilyClient
 
-import grep
+tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
 
 def run_command(command):
@@ -54,27 +56,45 @@ def find_files(pattern):
     except Exception as error:
         return f"Glob error: {error}"
 
-        def search_in_files(search_text):
+
+def web_search(query):
+    try:
+        response = tavily_client.search(query=query)
+        results = response.get("results", [])
+        if not results:
+            return "No search results found."
+        output = []
+        for r in results[:5]:
+            title = r.get("title", "No title")
+            url = r.get("url", "")
+            content = r.get("content", "")
+            output.append(f"Title: {title}\nURL: {url}\nContent: {content}\n")
+        return "\n---\n".join(output)
+    except Exception as error:
+        return f"Search error: {error}"
+
+
+def search_in_files(search_text):
+    try:
+        matches = []
+
+        files = glob.glob("**/*", recursive=True)
+
+        for file_path in files:
             try:
-                matches = []
+                with open(file_path, "r", encoding="utf-8") as file:
+                    content = file.read()
 
-                files = glob.glob("**/*", recursive=True)
+                    if search_text.lower() in content.lower():
+                        matches.append(file_path)
 
-                for file_path in files:
-                    try:
-                        with open(file_path, "r", encoding="utf-8") as file:
-                            content = file.read()
+            except:
+                pass
 
-                            if search_text.lower() in content.lower():
-                                matches.append(file_path)
+        if not matches:
+            return "No matches found."
 
-                    except:
-                        pass
+        return "\n".join(matches)
 
-                if not matches:
-                    return "No matches found."
-
-                return "\n".join(matches)
-
-            except Exception as error:
-                return f"Grep error: {error}"
+    except Exception as error:
+        return f"Grep error: {error}"

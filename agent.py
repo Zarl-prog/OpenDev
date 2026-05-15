@@ -1,5 +1,5 @@
 from llm import ask_llm
-from tools import read_file, run_command, write_file
+from tools import read_file, run_command, write_file, web_search
 
 
 def run_agent():
@@ -42,6 +42,10 @@ Command Output:
 
 {output}
 """
+        elif user_input.startswith("search "):
+            query = user_input.replace("search ", "")
+            print("Searching the web...")
+            response = web_search(query)
         elif user_input.startswith("write "):
             parts = user_input.split(" ", 2)
 
